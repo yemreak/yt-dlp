@@ -1,0 +1,49 @@
+{
+	"name": "@yemreak/mypackage",
+	"version": "1.0.0",
+	"description": "mypackage app with typescript",
+	"main": "src/app.ts",
+	"type": "module",
+	"scripts": {
+		"start": "tsc --project tsconfig.json && node out/app.js",
+		"build": "tsc --project tsconfig.json",
+		"publish": "npm publish --access public",
+		"test": "node --experimental-vm-modules ./node_modules/.bin/jest"
+	},
+	"jest": {
+		"preset": "ts-jest",
+		"testEnvironment": "node",
+		"silent": true,
+		"extensionsToTreatAsEsm": [
+			".ts"
+		],
+		"moduleNameMapper": {
+			"^(\\.{1,2}/.*)\\.js$": "$1"
+		},
+		"transform": {
+			"^.+\\.ts$": [
+				"ts-jest",
+				{
+					"useESM": true
+				}
+			]
+		}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/yemreak/mypackage.git"
+	},
+	"keywords": [],
+	"author": "yemreak",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/yemreak/mypackage/issues"
+	},
+	"homepage": "https://github.com/yemreak/mypackage#readme",
+	"devDependencies": {
+		"@types/jest": "^29.5.12",
+		"jest": "^29.7.0",
+		"ts-jest": "^29.1.2",
+		"typescript": "^5.4.5"
+	}
+}
