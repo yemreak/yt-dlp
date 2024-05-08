@@ -1,8 +1,8 @@
 {
-	"name": "@yemreak/mypackage",
+	"name": "@yemreak/yt-dlp",
 	"version": "1.0.0",
-	"description": "mypackage app with typescript",
-	"main": "src/app.ts",
+	"description": "Downloading videos and subtitles using yt-dlp, with utilities for extracting text from subtitles",
+	"main": "src/index.ts",
 	"type": "module",
 	"scripts": {
 		"start": "tsc --project tsconfig.json && node out/app.js",
@@ -31,19 +31,29 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/yemreak/mypackage.git"
+		"url": "git+https://github.com/yemreak/yt-dlp.git"
 	},
-	"keywords": [],
+	"keywords": [
+		"yt-dlp",
+		"youtube-dl",
+		"yt-dlp-wrapper",
+		"youtube-dl-wrapper",
+		"video-download",
+		"subtitles"
+	],
 	"author": "yemreak",
 	"license": "ISC",
 	"bugs": {
-		"url": "https://github.com/yemreak/mypackage/issues"
+		"url": "https://github.com/yemreak/yt-dlp/issues"
 	},
-	"homepage": "https://github.com/yemreak/mypackage#readme",
+	"homepage": "https://github.com/yemreak/yt-dlp#readme",
 	"devDependencies": {
 		"@types/jest": "^29.5.12",
 		"jest": "^29.7.0",
 		"ts-jest": "^29.1.2",
 		"typescript": "^5.4.5"
+	},
+	"dependencies": {
+		"node-fetch": "^3.3.2"
 	}
 }
