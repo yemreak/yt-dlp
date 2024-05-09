@@ -44,8 +44,8 @@ describe("YtDlp", () => {
 		async () => {
 			const source = "https://youtube.com/watch?v=hNQk4325W9w&si=5QUlL3WWYaLdVRhK"
 			const { subtitlePath } = await ytDlp.downloadSubtitle({ source })
-			expect(fs.existsSync(subtitlePath)).toBe(true)
 			expect(subtitlePath).toMatch(/test\/.*\.json3/)
+			expect(fs.existsSync(subtitlePath!)).toBe(true)
 
 			const { subtitleText } = await ytDlp.downloadSubtitleText({ source })
 			expect(subtitleText).toMatch(/.*\n/)

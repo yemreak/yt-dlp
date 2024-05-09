@@ -81,14 +81,16 @@ export class YtDlp {
 
 	/**
 	 * Downloads the subtitle file of a video
-	 * - If `source` is a string, it's a video URL
-	 * - If `source` is a VideoInfo object, it's the {@link MediaInfo} that was retrieved before
+	 * - If `source` is a video URL, retrieves the {@link MediaInfo} from the video URL
 	 */
-	async downloadSubtitle(params: { source: MediaSource; lang?: Language }) {
+	async downloadSubtitle(params: {
+		source: MediaSource
+		lang?: Language
+	}): Promise<{ subtitlePath?: string; info: MediaInfo }> {
 		const { source, lang } = params
 
 		const info = await this.retrieveMediaInfoFromSource(source)
-		if (!info.subtitles) throw new Error("No subtitles found")
+		if (!info.subtitles) return { info }
 
 		let key: keyof Subtitles
 		if (lang) {
@@ -119,11 +121,15 @@ export class YtDlp {
 
 	/**
 	 * Downloads and extracts the text from a subtitle file
-	 * - If `source` is a string, it's a video URL
-	 * - If `source` is a VideoInfo object, it's the {@link MediaInfo} that was retrieved before
+	 * - If `source` is a video URL, retrieves the {@link MediaInfo} from the video URL
 	 */
-	async downloadSubtitleText(params: { source: MediaSource; lang?: Language }) {
+	async downloadSubtitleText(params: {
+		source: MediaSource
+		lang?: Language
+	}): Promise<{ subtitleText?: string; info: MediaInfo }> {
 		const { subtitlePath, info } = await this.downloadSubtitle(params)
+		if (!subtitlePath) return { info }
+
 		const subtitleText = this.extractTextFromSubtitles(subtitlePath)
 		return { subtitleText, info }
 	}
