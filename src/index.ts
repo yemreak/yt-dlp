@@ -90,13 +90,12 @@ export class YtDlp {
 		const { source, lang } = params
 
 		const info = await this.retrieveMediaInfoFromSource(source)
-		if (!info.subtitles) return { info }
+		const keys = Object.keys(info.subtitles)
+		if (keys.length === 0) return { info }
 
 		let key: keyof Subtitles
 		if (lang) {
-			key = Object.keys(info.subtitles).find(key =>
-				key.includes(lang)
-			) as keyof Subtitles
+			key = keys.find(key => key.includes(lang)) as keyof Subtitles
 			if (!key) throw new Error(`No subtitles found for ${lang}`)
 		} else key = info.language ?? (Object.keys(info.subtitles)[0] as keyof Subtitles)
 
