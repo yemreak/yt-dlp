@@ -42,7 +42,7 @@ describe("YtDlp", () => {
 	it(
 		"download subtitle and text",
 		async () => {
-			const source = "https://youtu.be/hNQk4325W9w"
+			const source = "https://youtube.com/watch?v=hNQk4325W9w&si=5QUlL3WWYaLdVRhK"
 			const { subtitlePath } = await ytDlp.downloadSubtitle({ source })
 			expect(fs.existsSync(subtitlePath)).toBe(true)
 			expect(subtitlePath).toMatch(/test\/.*\.json3/)
@@ -50,7 +50,7 @@ describe("YtDlp", () => {
 			const { subtitleText } = await ytDlp.downloadSubtitleText({ source })
 			expect(subtitleText).toMatch(/.*\n/)
 		},
-		10 * 1000
+		100 * 1000
 	)
 
 	it(

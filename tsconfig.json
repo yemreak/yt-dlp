@@ -1,21 +1,21 @@
 {
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules", "**/*.spec.ts"],
 	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"outDir": "./dist",
+		"rootDir": "./src",
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"incremental": true,
-		"module": "ESNext",
 		"moduleResolution": "Bundler",
-		"outDir": "./out",
 		"resolveJsonModule": true,
-		"rootDir": "./src",
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"strictNullChecks": true,
-		"target": "ESNext"
-	},
-	"exclude": ["node_modules", "**/*.spec.ts"],
-	"include": ["src/**/*.ts", "types/**/*.d.ts"]
+		"strictNullChecks": true
+	}
 }

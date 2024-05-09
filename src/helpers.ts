@@ -27,7 +27,7 @@ export async function downloadLatestRelease(outdir: string = ".") {
 }
 
 export function execYtDlp(options: YtDlpOptions) {
-	const args = [options.url]
+	const args = [`"${options.url}"`]
 	if (options.outputPath) args.push("--output", `"${options.outputPath}"`)
 	if (options.cookies) args.push("--cookies", `"${options.cookies}"`)
 	if (options.dumpJson) args.push("--dump-json")
