@@ -90,6 +90,15 @@ export class YtDlp {
 	}
 
 	/**
+	 * Extracts the text from a `json3` subtitle file
+	 */
+	extractTextFromSubtitles(subtitlePath: string) {
+		const subtitleFile = fs.readFileSync(subtitlePath, "utf-8")
+		const subtitleData: SubtitleData = JSON.parse(subtitleFile)
+		return extractTextFromSubtitles(subtitleData)
+	}
+
+	/**
 	 * Downloads and extracts the text from a subtitle file
 	 * - If `source` is a string, it's a video URL
 	 * - If `source` is a VideoInfo object, it's the {@link VideoInfo} that was retrieved before
@@ -99,9 +108,7 @@ export class YtDlp {
 		lang?: Language
 	}) {
 		const { subtitlePath, info } = await this.downloadSubtitle(params)
-		const subtitleFile = fs.readFileSync(subtitlePath, "utf-8")
-		const subtitleData: SubtitleData = JSON.parse(subtitleFile)
-		const subtitleText = extractTextFromSubtitles(subtitleData)
+		const subtitleText = this.extractTextFromSubtitles(subtitlePath)
 		return { subtitleText, info }
 	}
 }
