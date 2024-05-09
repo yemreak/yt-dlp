@@ -73,4 +73,5 @@ export function extractTextFromSubtitles(subtitleData: SubtitleData): string {
 	return subtitleData.events
 		.flatMap(event => event.segs.map(segment => segment.utf8))
 		.join(" ")
+		.replace(/[\r\n]+/g, " ")
 }
