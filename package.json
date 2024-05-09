@@ -1,6 +1,6 @@
 {
 	"name": "@yemreak/yt-dlp",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Downloading videos and subtitles using yt-dlp, with utilities for extracting text from subtitles",
 	"main": "src/index.ts",
 	"type": "module",

@@ -53,12 +53,22 @@ export class YtDlp {
 		const { stdout, stderr } = await this.exec({ url, outputPath: symPath })
 		if (stderr && stderr.includes("ERROR")) throw new Error(stderr)
 
-		const path = parseFilenameFromOutput(stdout)
-		return { path, info }
+		const videoPath = parseFilenameFromOutput(stdout)
+		return { videoPath, info }
 	}
 
-	async downloadSubtitle(url: string, lang?: Language) {
-		const info = await this.retrieveVideoInfo(url)
+	/**
+	 * Downloads the subtitle file of a video
+	 * - If `source` is a string, it's a video URL
+	 * - If `source` is a VideoInfo object, it's the {@link VideoInfo} that was retrieved before
+	 */
+	async downloadSubtitle(params: { source: string | VideoInfo; lang?: Language }) {
+		const { source, lang } = params
+
+		let info: VideoInfo
+		if (typeof source === "string") {
+			info = await this.retrieveVideoInfo(source)
+		} else info = source
 		if (!info.subtitles) throw new Error("No subtitles found")
 
 		let key: keyof Subtitles
@@ -73,19 +83,25 @@ export class YtDlp {
 		if (!subtitle) throw new Error(`No JSON3 subtitles found for ${lang}`)
 
 		const subtitlePath = `${this.config.workdir}/${info.id}.${subtitle.ext}`
-		if (fs.existsSync(subtitlePath)) return subtitlePath
+		if (fs.existsSync(subtitlePath)) return { subtitlePath, info }
 
 		await downloadFile(subtitle.url, subtitlePath)
-		return subtitlePath
+		return { subtitlePath, info }
 	}
 
 	/**
 	 * Downloads and extracts the text from a subtitle file
+	 * - If `source` is a string, it's a video URL
+	 * - If `source` is a VideoInfo object, it's the {@link VideoInfo} that was retrieved before
 	 */
-	async downloadSubtitleText(url: string, lang?: keyof Subtitles) {
-		const subtitlePath = await this.downloadSubtitle(url, lang)
+	async downloadSubtitleText(params: {
+		source: string | VideoInfo
+		lang?: Language
+	}) {
+		const { subtitlePath, info } = await this.downloadSubtitle(params)
 		const subtitleFile = fs.readFileSync(subtitlePath, "utf-8")
 		const subtitleData: SubtitleData = JSON.parse(subtitleFile)
-		return extractTextFromSubtitles(subtitleData)
+		const subtitleText = extractTextFromSubtitles(subtitleData)
+		return { subtitleText, info }
 	}
 }

@@ -31,10 +31,10 @@ describe("YtDlp", () => {
 		"download video",
 		async () => {
 			const url = "https://youtu.be/6n3pFFPSlW4"
-			const { path, info } = await ytDlp.downloadVideo(url)
-			expect(fs.existsSync(path)).toBe(true)
+			const { videoPath, info } = await ytDlp.downloadVideo(url)
+			expect(fs.existsSync(videoPath)).toBe(true)
 			expect(info.id).toBe("6n3pFFPSlW4")
-			expect(path).toMatch(/test\/.*\.(mp4|webm)/)
+			expect(videoPath).toMatch(/test\/.*\.(mp4|webm)/)
 		},
 		100 * 1000
 	)
@@ -42,13 +42,13 @@ describe("YtDlp", () => {
 	it(
 		"download subtitle and text",
 		async () => {
-			const url = "https://youtu.be/hNQk4325W9w"
-			const subtitlePath = await ytDlp.downloadSubtitle(url)
+			const source = "https://youtu.be/hNQk4325W9w"
+			const { subtitlePath } = await ytDlp.downloadSubtitle({ source })
 			expect(fs.existsSync(subtitlePath)).toBe(true)
 			expect(subtitlePath).toMatch(/test\/.*\.json3/)
 
-			const subtitle = await ytDlp.downloadSubtitleText(url)
-			expect(subtitle).toMatch(/.*\n/)
+			const { subtitleText } = await ytDlp.downloadSubtitleText({ source })
+			expect(subtitleText).toMatch(/.*\n/)
 		},
 		10 * 1000
 	)
@@ -58,12 +58,9 @@ describe("YtDlp", () => {
 		async () => {
 			const url = "https://youtu.be/hNQk4325W9w"
 			const lang = "tr"
-			const subtitlePath = await ytDlp.downloadSubtitle(url, lang)
-			expect(fs.existsSync(subtitlePath)).toBe(true)
-			expect(subtitlePath).toMatch(/test\/.*\.json3/)
-
-			const subtitle = await ytDlp.downloadSubtitleText(url, lang)
-			expect(subtitle).toMatch(/.*\n/)
+			await expect(ytDlp.downloadSubtitle({ source: url, lang })).rejects.toThrow(
+				"No subtitles found for tr"
+			)
 		},
 		10 * 1000
 	)
