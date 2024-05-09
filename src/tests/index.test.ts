@@ -23,7 +23,7 @@ describe("YtDlp", () => {
 
 	it("retrieve video info", async () => {
 		const url = "https://youtu.be/6n3pFFPSlW4"
-		const info = await ytDlp.retrieveVideoInfo(url)
+		const info = await ytDlp.retrieveMediaInfo(url)
 		expect(info.id).toBe("6n3pFFPSlW4")
 	})
 
@@ -31,10 +31,10 @@ describe("YtDlp", () => {
 		"download video",
 		async () => {
 			const url = "https://youtu.be/6n3pFFPSlW4"
-			const { videoPath, info } = await ytDlp.downloadVideo(url)
-			expect(fs.existsSync(videoPath)).toBe(true)
+			const { mediaPath, info } = await ytDlp.download({ source: url })
+			expect(fs.existsSync(mediaPath)).toBe(true)
 			expect(info.id).toBe("6n3pFFPSlW4")
-			expect(videoPath).toMatch(/test\/.*\.(mp4|webm)/)
+			expect(mediaPath).toMatch(/test\/.*\.(mp4|webm)/)
 		},
 		100 * 1000
 	)

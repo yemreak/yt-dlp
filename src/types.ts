@@ -1,13 +1,15 @@
-export type YtDlpOptions = {
-	binaryPath: string
-	url: string
+export type YtDlpOptionals = {
 	outputPath?: string
 	cookies?: string
 	dumpJson?: boolean
-	format?: string
+	format?: MediaFormat
 }
+export type YtDlpOptions = { binaryPath: string; url: string } & YtDlpOptionals
 
-export type VideoInfo = {
+export type MediaSource = string | MediaInfo
+export type MediaFormat = "b" | "ba"
+
+export type MediaInfo = {
 	id: string
 	title: string
 	formats: Format[]

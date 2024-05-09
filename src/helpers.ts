@@ -31,6 +31,7 @@ export function execYtDlp(options: YtDlpOptions) {
 	if (options.outputPath) args.push("--output", `"${options.outputPath}"`)
 	if (options.cookies) args.push("--cookies", `"${options.cookies}"`)
 	if (options.dumpJson) args.push("--dump-json")
+
 	if (options.format) args.push("--format", options.format)
 	else args.push("--format", "b")
 
