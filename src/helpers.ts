@@ -4,7 +4,6 @@ import { platform } from "os"
 
 import type { SubtitleData, YtDlpOptions } from "./types.js"
 import { downloadFile, execAsync } from "./utils.js"
-
 /**
  * Downloads the latest release of yt-dlp from GitHub
  * - chmod +x the file if it's not on Windows
@@ -54,25 +53,18 @@ export function execYtDlp(options: YtDlpOptions) {
  * Parses the filename from the output of yt-dlp
  * - The filename is the line that contains "Destination:"
  */
-export function parseFilenameFromOutput(output: string) {
-	if (output.includes("has already been downloaded")) {
-		const path = output
-			.split("\n")
-			.find(line => line.includes("has already been downloaded"))
-			?.split(" ")[1]
+export function parseFilenameFromOutput(stdout: string) {
+	if (stdout.includes("has already been downloaded")) {
+		const path = stdout.match(/\[download\] (.+) has already been downloaded/)?.[1]
 		if (!path)
 			throw new Error(
-				`Failed to parse already downloaded filename from output: ${output}`
+				`Failed to parse already downloaded filename from output: ${stdout}`
 			)
 		return path
 	}
 
-	const path = output
-		.split("\n")
-		.find(line => line.includes("Destination:"))
-		?.split(":")[1]
-		.trim()
-	if (!path) throw new Error(`Failed to parse filename from output: ${output}`)
+	const path = stdout.match(/Destination: (.+)/)?.[1]
+	if (!path) throw new Error(`Failed to parse filename from output: ${stdout}`)
 	return path
 }
 

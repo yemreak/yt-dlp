@@ -1,3 +1,4 @@
+import fs from "fs"
 import { extractTextFromSrtSubtitle } from "../helpers.js"
 
 describe("extractTextFromSrtSubtitle", () => {
@@ -12,10 +13,10 @@ describe("extractTextFromSrtSubtitle", () => {
 		expect(result).toEqual(expected)
 	})
 
-	// it("from srt file", () => {
-	// 	const subtitleData = fs.readFileSync("temp.srt", "utf-8")
+	it("from srt file", () => {
+		const subtitleData = fs.readFileSync("data/jOgqIbeLXkE.en.srt", "utf-8")
 
-	// 	const result = extractTextFromSrtSubtitle(subtitleData)
-	// 	expect(result).toBeTruthy()
-	// })
+		const result = extractTextFromSrtSubtitle(subtitleData)
+		expect(result).toBeTruthy()
+	})
 })
