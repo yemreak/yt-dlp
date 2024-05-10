@@ -1,6 +1,7 @@
 import { chmodSync } from "fs"
 import fetch from "node-fetch"
 import { platform } from "os"
+
 import type { SubtitleData, YtDlpOptions } from "./types.js"
 import { downloadFile, execAsync } from "./utils.js"
 
@@ -34,6 +35,16 @@ export function execYtDlp(options: YtDlpOptions) {
 
 	if (options.format) args.push("--format", options.format)
 	else args.push("--format", "b")
+
+	if (options.subtitle)
+		args.push(
+			options.subtitle.auto ? "--write-auto-sub" : "--write-sub",
+			"--sub-lang",
+			options.subtitle.lang,
+			"--skip-download",
+			"--convert-subs",
+			"srt"
+		)
 
 	const command = `${options.binaryPath} ${args.join(" ")}`
 	return execAsync(command)
@@ -70,9 +81,52 @@ export function parseFilenameFromOutput(output: string) {
  * @param subtitleData - The subtitle data containing events with text segments.
  * @returns The concatenated text from all subtitles.
  */
-export function extractTextFromSubtitles(subtitleData: SubtitleData): string {
+export function extractTextFromJson3Subtitle(subtitleData: SubtitleData): string {
 	return subtitleData.events
 		.flatMap(event => event.segs.map(segment => segment.utf8))
 		.join(" ")
 		.replace(/[\r\n]+/g, " ")
+}
+
+/**
+ * Extracts text from VTT subtitle data.
+ * @param subtitleData - The subtitle data in VTT format.
+ * @returns The concatenated text from all subtitles.
+ */
+export function extractTextFromVttSubtitle(subtitleData: string): string {
+	return subtitleData
+		.split("\n")
+		.filter(line => !line.startsWith("WEBVTT") && !line.startsWith("NOTE"))
+		.join(" ")
+		.replace(/[\r\n]+/g, " ")
+}
+
+/**
+ * Cleans and extracts text from SRT subtitle data.
+ * - Omits line numbers and timestamps.
+ * - Consolidates multiple spaces into one.
+ * - Converts dashes to spaces.
+ * - Removes duplicate consecutive lines.
+ * @param subtitleData Raw SRT subtitle content.
+ * @returns A clean, continuous string of subtitle text.
+ */
+export function extractTextFromSrtSubtitle(subtitleData: string): string {
+	const lines = subtitleData.split("\n")
+	let previousLine = ""
+	const processedText = lines.reduce((acc, line) => {
+		line = line
+			.trim()
+			.replace(/^\d.*/g, "")
+			.replace(/-/g, " ")
+			.replace(/\s+/g, " ")
+			.trim()
+
+		if (line && line !== previousLine) {
+			acc.push(line)
+			previousLine = line
+		}
+		return acc
+	}, [] as string[])
+
+	return processedText.join(" ").trim()
 }

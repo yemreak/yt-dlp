@@ -4,7 +4,9 @@ import os from "os"
 import {
 	downloadLatestRelease,
 	execYtDlp,
-	extractTextFromSubtitles,
+	extractTextFromJson3Subtitle,
+	extractTextFromSrtSubtitle,
+	extractTextFromVttSubtitle,
 	parseFilenameFromOutput,
 } from "./helpers.js"
 import type {
@@ -87,35 +89,57 @@ export class YtDlp {
 		source: MediaSource
 		lang?: Language
 	}): Promise<{ subtitlePath?: string; info: MediaInfo }> {
-		const { source, lang } = params
+		const { source, lang = "en" } = params
 
 		const info = await this.retrieveMediaInfoFromSource(source)
 		const keys = Object.keys(info.subtitles)
-		if (keys.length === 0) return { info }
+		if (keys.length === 0) {
+			const { stdout } = await this.exec({
+				url: info.original_url,
+				subtitle: { lang, auto: true },
+				outputPath: `${this.config.workdir}/${info.id}`,
+			})
+			const subtitlePath = parseFilenameFromOutput(stdout).replace(".vtt", ".srt")
+			return { subtitlePath, info }
+		}
 
-		let key: keyof Subtitles
-		if (lang) {
-			key = keys.find(key => key.includes(lang)) as keyof Subtitles
-			if (!key) throw new Error(`No subtitles found for ${lang}`)
-		} else key = info.language ?? (Object.keys(info.subtitles)[0] as keyof Subtitles)
+		const key = keys.find(key => key.includes(lang)) as keyof Subtitles
+		if (!key) throw new Error(`No subtitles found for ${lang}`)
 
 		const subtitle = info.subtitles[key]?.find(sub => sub.ext === "json3")
-		if (!subtitle) throw new Error(`No JSON3 subtitles found for ${lang}`)
+		if (subtitle) {
+			const subtitlePath = `${this.config.workdir}/${info.id}.${subtitle.ext}`
+			if (fs.existsSync(subtitlePath)) return { subtitlePath, info }
 
-		const subtitlePath = `${this.config.workdir}/${info.id}.${subtitle.ext}`
-		if (fs.existsSync(subtitlePath)) return { subtitlePath, info }
+			await downloadFile(subtitle.url, subtitlePath)
+			return { subtitlePath, info }
+		}
 
-		await downloadFile(subtitle.url, subtitlePath)
+		const { stdout } = await this.exec({
+			url: info.original_url,
+			subtitle: { lang },
+			outputPath: `${this.config.workdir}/${info.id}`,
+		})
+		const subtitlePath = parseFilenameFromOutput(stdout).replace(".vtt", ".srt")
 		return { subtitlePath, info }
 	}
 
 	/**
-	 * Extracts the text from a `json3` subtitle file
+	 * Extracts the text from a `json3`, `vtt` or `srt` subtitle file
 	 */
-	extractTextFromSubtitles(subtitlePath: string) {
+	extractTextFromSubtitles(subtitlePath: string): string {
 		const subtitleFile = fs.readFileSync(subtitlePath, "utf-8")
-		const subtitleData: SubtitleData = JSON.parse(subtitleFile)
-		return extractTextFromSubtitles(subtitleData)
+
+		if (subtitlePath.endsWith(".json3")) {
+			const subtitleData: SubtitleData = JSON.parse(subtitleFile)
+			return extractTextFromJson3Subtitle(subtitleData)
+		} else if (subtitlePath.endsWith(".vtt")) {
+			return extractTextFromVttSubtitle(subtitleFile)
+		} else if (subtitlePath.endsWith(".srt")) {
+			return extractTextFromSrtSubtitle(subtitleFile)
+		}
+
+		throw new Error(`Unsupported subtitle format: ${subtitlePath}`)
 	}
 
 	/**
