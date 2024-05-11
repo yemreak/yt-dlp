@@ -7,12 +7,11 @@ import {
 	extractTextFromJson3Subtitle,
 	extractTextFromSrtSubtitle,
 	extractTextFromVttSubtitle,
-	parseFilenameFromOutput,
+	parseFilenamesFromOutput,
 } from "./helpers.js"
 import type {
 	Language,
 	MediaInfo,
-	MediaSource,
 	SubtitleData,
 	Subtitles,
 	YtDlpOptionals,
@@ -39,9 +38,15 @@ export class YtDlp {
 		await downloadLatestRelease(this.config.workdir)
 	}
 
-	async retrieveMediaInfo(url: string): Promise<MediaInfo> {
+	/**
+	 * Returns multiple {@link MediaInfo} objects if contains multiple videos
+	 */
+	async retrieveMediaInfoList(url: string): Promise<MediaInfo[]> {
 		const { stdout } = await this.exec({ dumpJson: true, url })
-		return JSON.parse(stdout) as MediaInfo
+		return stdout
+			.trim()
+			.split("\n")
+			.map(line => JSON.parse(line))
 	}
 
 	async exec(optionals: YtDlpOptionals & { url: string }) {
@@ -52,32 +57,28 @@ export class YtDlp {
 		})
 	}
 
-	async downloadAudio(params: { source: MediaSource }) {
-		return await this.download({ ...params, format: "ba" })
+	async downloadAudio(params: { url: string } & YtDlpOptionals): Promise<string[]> {
+		return await this.download({ format: "ba", ...params })
 	}
 
-	async download(params: { source: MediaSource } & YtDlpOptionals) {
-		const { source, ...optionals } = params
-
-		const info = await this.retrieveMediaInfoFromSource(source)
-		if (info.playlist_index) throw new Error("This is a playlist, not a video")
-
-		const pattern = "%(title)s.%(ext)s"
+	async download(params: { url: string } & YtDlpOptionals): Promise<string[]> {
+		const { url, ...optionals } = params
+		const pattern = "%(id)s.%(ext)s"
 		const symPath = `${this.config.workdir}/${pattern}`
 
 		const { stdout, stderr } = await this.exec({
-			url: info.original_url,
+			url,
 			outputPath: symPath,
 			...optionals,
 		})
 		if (stderr && stderr.includes("ERROR")) throw new Error(stderr)
 
-		const mediaPath = parseFilenameFromOutput(stdout)
-		return { mediaPath, info }
+		const mediaPaths = parseFilenamesFromOutput(stdout)
+		return mediaPaths
 	}
 
-	async retrieveMediaInfoFromSource(source: MediaSource): Promise<MediaInfo> {
-		if (typeof source === "string") return await this.retrieveMediaInfo(source)
+	async retrieveMediaInfoFromSource(source: MediaSource): Promise<MediaInfo[]> {
+		if (typeof source === "string") return await this.retrieveMediaInfoList(source)
 		return source as any
 	}
 
@@ -86,12 +87,11 @@ export class YtDlp {
 	 * - If `source` is a video URL, retrieves the {@link MediaInfo} from the video URL
 	 */
 	async downloadSubtitle(params: {
-		source: MediaSource
+		info: MediaInfo
 		lang?: Language
-	}): Promise<{ subtitlePath?: string; info: MediaInfo }> {
-		const { source, lang = "en" } = params
+	}): Promise<string> {
+		const { info, lang = "en" } = params
 
-		const info = await this.retrieveMediaInfoFromSource(source)
 		const keys = Object.keys(info.subtitles)
 		if (keys.length === 0) {
 			const { stdout } = await this.exec({
@@ -99,8 +99,8 @@ export class YtDlp {
 				subtitle: { lang, auto: true },
 				outputPath: `${this.config.workdir}/${info.id}`,
 			})
-			const subtitlePath = parseFilenameFromOutput(stdout).replace(".vtt", ".srt")
-			return { subtitlePath, info }
+			const subtitlePath = parseFilenamesFromOutput(stdout)[0].replace(".vtt", ".srt")
+			return subtitlePath
 		}
 
 		const key = keys.find(key => key.includes(lang)) as keyof Subtitles
@@ -109,10 +109,10 @@ export class YtDlp {
 		const subtitle = info.subtitles[key]?.find(sub => sub.ext === "json3")
 		if (subtitle) {
 			const subtitlePath = `${this.config.workdir}/${info.id}.${subtitle.ext}`
-			if (fs.existsSync(subtitlePath)) return { subtitlePath, info }
+			if (fs.existsSync(subtitlePath)) return subtitlePath
 
 			await downloadFile(subtitle.url, subtitlePath)
-			return { subtitlePath, info }
+			return subtitlePath
 		}
 
 		const { stdout } = await this.exec({
@@ -120,8 +120,8 @@ export class YtDlp {
 			subtitle: { lang },
 			outputPath: `${this.config.workdir}/${info.id}`,
 		})
-		const subtitlePath = parseFilenameFromOutput(stdout).replace(".vtt", ".srt")
-		return { subtitlePath, info }
+		const subtitlePath = parseFilenamesFromOutput(stdout)[0].replace(".vtt", ".srt")
+		return subtitlePath
 	}
 
 	/**
@@ -147,13 +147,13 @@ export class YtDlp {
 	 * - If `source` is a video URL, retrieves the {@link MediaInfo} from the video URL
 	 */
 	async downloadSubtitleText(params: {
-		source: MediaSource
+		info: MediaInfo
 		lang?: Language
-	}): Promise<{ subtitleText?: string; info: MediaInfo }> {
-		const { subtitlePath, info } = await this.downloadSubtitle(params)
-		if (!subtitlePath) return { info }
+	}): Promise<string | undefined> {
+		const subtitlePath = await this.downloadSubtitle(params)
+		if (!subtitlePath) return
 
 		const subtitleText = this.extractTextFromSubtitles(subtitlePath)
-		return { subtitleText, info }
+		return subtitleText
 	}
 }

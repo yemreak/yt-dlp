@@ -6,8 +6,6 @@ export type YtDlpOptionals = {
 	subtitle?: { lang: Language; auto?: boolean }
 }
 export type YtDlpOptions = { binaryPath: string; url: string } & YtDlpOptionals
-
-export type MediaSource = string | MediaInfo
 export type MediaFormat = "b" | "ba"
 
 export type MediaInfo = {

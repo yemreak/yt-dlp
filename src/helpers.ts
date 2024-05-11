@@ -50,22 +50,23 @@ export function execYtDlp(options: YtDlpOptions) {
 }
 
 /**
- * Parses the filename from the output of yt-dlp
- * - The filename is the line that contains "Destination:"
+ * Parses the filenames from the output of yt-dlp
  */
-export function parseFilenameFromOutput(stdout: string) {
-	if (stdout.includes("has already been downloaded")) {
-		const path = stdout.match(/\[download\] (.+) has already been downloaded/)?.[1]
-		if (!path)
-			throw new Error(
-				`Failed to parse already downloaded filename from output: ${stdout}`
-			)
-		return path
+export function parseFilenamesFromOutput(stdout: string): string[] {
+	const paths: string[] = []
+
+	const alreadyDownloadedRegex = /\[download\] (.+) has already been downloaded/g
+	for (const match of stdout.matchAll(alreadyDownloadedRegex)) {
+		paths.push(match[1])
 	}
 
-	const path = stdout.match(/Destination: (.+)/)?.[1]
-	if (!path) throw new Error(`Failed to parse filename from output: ${stdout}`)
-	return path
+	const destinationRegex = /Destination: (.+)/g
+	for (const match of stdout.matchAll(destinationRegex)) {
+		paths.push(match[1])
+	}
+	if (paths.length === 0)
+		throw new Error(`Failed to parse filename from output: ${stdout}`)
+	return paths
 }
 
 /**
@@ -121,4 +122,8 @@ export function extractTextFromSrtSubtitle(subtitleData: string): string {
 	}, [] as string[])
 
 	return processedText.join(" ").trim()
+}
+
+export function isConflictError(error: any) {
+	return error?.code === "conflict_error"
 }
