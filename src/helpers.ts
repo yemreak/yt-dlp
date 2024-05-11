@@ -38,8 +38,7 @@ export function execYtDlp(options: YtDlpOptions) {
 	if (options.subtitle)
 		args.push(
 			options.subtitle.auto ? "--write-auto-sub" : "--write-sub",
-			"--sub-lang",
-			options.subtitle.lang,
+			options.subtitle.lang ? `--sub-lang ${options.subtitle}` : "",
 			"--skip-download",
 			"--convert-subs",
 			"srt"

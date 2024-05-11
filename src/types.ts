@@ -3,7 +3,7 @@ export type YtDlpOptionals = {
 	cookies?: string
 	dumpJson?: boolean
 	format?: MediaFormat
-	subtitle?: { lang: Language; auto?: boolean }
+	subtitle?: { lang?: Language; auto?: boolean }
 }
 export type YtDlpOptions = { binaryPath: string; url: string } & YtDlpOptionals
 export type MediaFormat = "b" | "ba"

@@ -1,98 +1,112 @@
 # @yemreak/yt-dlp
 
-A Node.js library leveraging yt-dlp for downloading videos and subtitles, with added functionality for extracting text from subtitles. It supports a variety of video formats and manages video downloads efficiently.
+> Yes, the readme was created with ChatGPT 😅, but that's okay, no worries! 🙃
 
-> The project that I wanted to learn out of boredom and cost me 4 hours 😅
+## Overview
+
+This package provides tools to interact with the yt-dlp utility for downloading media from YouTube and other video platforms. It includes functionality for downloading videos, extracting audio, managing subtitles, and retrieving media information.
+
+### Features
+
+- **Download videos and audios**: Supports various formats and configurations.
+- **Subtitle management**: Download and extract text from subtitles in different formats.
+- **Media information retrieval**: Fetch detailed information about media content.
 
 ## Installation
-
-To install `@yemreak/yt-dlp`, use npm:
 
 ```bash
 npm install @yemreak/yt-dlp
 ```
 
-Ensure that you have Node.js installed on your system to use this package.
-
-## Features
-
-- Download videos using yt-dlp
-- Download subtitles in various languages
-- Extract text from subtitle files
-
 ## Usage
 
-### Initializing
+### Initialize
 
-First, import and configure `yt-dlp` in your project:
+```typescript
+import { YtDlp, YtDlpConfig } from "@yemreak/yt-dlp"
 
-```javascript
-import { YtDlp, YtDlpConfig } from '@yemreak/yt-dlp';
-
-const config = { workdir: './downloads' };
-const ytDlp = new YtDlp(config);
+const config: YtDlpConfig = { workdir: "./downloads" }
+const ytDlp = new YtDlp(config)
 ```
 
-### Downloading a Video
+### Download Latest yt-dlp Release
 
-To download a video:
+Ensure the latest version of yt-dlp is downloaded:
 
-```javascript
-async function downloadVideo() {
-    const url = 'https://www.youtube.com/watch?v=example';
-    try {
-        const { path, info } = await ytDlp.downloadVideo(url);
-        console.log(`Downloaded video at ${path}`);
-    } catch (error) {
-        console.error(error);
-    }
+```typescript
+await ytDlp.downloadLatestReleaseIfNotExists()
+```
+
+### Download Video
+
+Download a video with custom format settings:
+
+```typescript
+const videoUrls = await ytDlp.download({
+	url: "https://youtube.com/watch?v=example",
+	format: "ba", // best audio
+})
+```
+
+### Extract Media Information
+
+Retrieve detailed information from a video URL:
+
+```typescript
+const mediaInfo = await ytDlp.retrieveMediaInfoList(
+	"https://youtube.com/watch?v=example"
+)
+```
+
+### Download and Extract Subtitles
+
+Download subtitles and extract text:
+
+```typescript
+const subtitleText = await ytDlp.downloadSubtitleText({
+	info: mediaInfo[0],
+	lang: "en",
+})
+```
+
+## Practical Examples
+
+### Batch Download
+
+Download multiple videos by passing a list of URLs:
+
+```typescript
+for (const url of [
+	"https://youtube.com/watch?v=example1",
+	"https://youtube.com/watch?v=example2",
+]) {
+	await ytDlp.download({ url })
 }
-
-downloadVideo();
 ```
 
-### Downloading Subtitles
+### Advanced Subtitle Handling
 
-To download subtitles:
+Download subtitles in different languages and formats, then extract and save the text:
 
-```javascript
-async function downloadSubtitles() {
-    const url = 'https://www.youtube.com/watch?v=example';
-    const lang = 'en';  // Specify language code
-    try {
-        const subtitlePath = await ytDlp.downloadSubtitle(url, lang);
-        console.log(`Downloaded subtitles at ${subtitlePath}`);
-    } catch (error) {
-        console.error(error);
-    }
+```typescript
+const langs: Language[] = ["en", "es", "de"]
+for (const lang of langs) {
+	const subtitlePath = await ytDlp.downloadSubtitle({ info: mediaInfo[0], lang })
+	const extractedText = ytDlp.extractTextFromSubtitles(subtitlePath)
+	console.log(`Extracted Text in ${lang}:`, extractedText)
 }
-
-downloadSubtitles();
 ```
 
-### Extracting Text from Subtitles
+### Error Handling
 
-To extract text from downloaded subtitles:
+Implement robust error handling to manage potential download and extraction failures:
 
-```javascript
-async function extractSubtitleText() {
-    const url = 'https://www.youtube.com/watch?v=example';
-    const lang = 'en';  // Specify language code
-    try {
-        const text = await ytDlp.downloadSubtitleText(url, lang);
-        console.log(`Extracted text: ${text}`);
-    } catch (error) {
-        console.error(error);
-    }
+```typescript
+try {
+	const videoUrls = await ytDlp.download({
+		url: "https://youtube.com/watch?v=example",
+	})
+} catch (error) {
+	console.error("Failed to download video:", error)
 }
-
-extractSubtitleText();
 ```
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request with your changes or improvements. Make sure to follow the existing code style and add unit tests for any new or changed functionality.
-
-## Issues
-
-If you encounter any issues or have suggestions for improvements, please submit them as issues on the GitHub repository.

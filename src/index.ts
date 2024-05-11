@@ -84,12 +84,28 @@ export class YtDlp {
 
 	/**
 	 * Downloads the subtitle file of a video
-	 * - If `source` is a video URL, retrieves the {@link MediaInfo} from the video URL
 	 */
 	async downloadSubtitle(params: {
 		info: MediaInfo
 		lang?: Language
 	}): Promise<string> {
+		const { info, lang } = params
+		const { stdout } = await this.exec({
+			url: info.original_url,
+			subtitle: { auto: true, lang },
+			outputPath: `${this.config.workdir}/${info.id}.%(lang)s.%(ext)s`,
+		})
+		const subtitlePath = parseFilenamesFromOutput(stdout)[0].replace(".vtt", ".srt")
+		return subtitlePath
+	}
+
+	/**
+	 * Downloads the subtitle file of a video without using yt-dlp
+	 */
+	async downloadSubtitleWithoutYtDlp(params: {
+		info: MediaInfo
+		lang?: Language
+	}): Promise<string | undefined> {
 		const { info, lang = "en" } = params
 
 		const keys = Object.keys(info.subtitles)
@@ -114,14 +130,6 @@ export class YtDlp {
 			await downloadFile(subtitle.url, subtitlePath)
 			return subtitlePath
 		}
-
-		const { stdout } = await this.exec({
-			url: info.original_url,
-			subtitle: { lang },
-			outputPath: `${this.config.workdir}/${info.id}`,
-		})
-		const subtitlePath = parseFilenamesFromOutput(stdout)[0].replace(".vtt", ".srt")
-		return subtitlePath
 	}
 
 	/**
@@ -139,7 +147,7 @@ export class YtDlp {
 			return extractTextFromSrtSubtitle(subtitleFile)
 		}
 
-		throw new Error(`Unsupported subtitle format: ${subtitlePath}`)
+		throw new Error(`Unsupported subtitle format: "${subtitlePath}"`)
 	}
 
 	/**
