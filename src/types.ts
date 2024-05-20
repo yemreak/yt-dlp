@@ -43,6 +43,7 @@ export type MediaInfo = {
 	upload_date: string
 	availability: string
 	original_url: string
+	url: string
 	webpage_url_basename: string
 	webpage_url_domain: string
 	extractor: string
