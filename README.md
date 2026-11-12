@@ -1,5 +1,7 @@
 # @yemreak/yt-dlp
 
+> **[optionOS](https://optionos.app/)** — Show AI what you mean. Stay in your flow. <!-- optionos -->
+
 > Yes, the readme was created with ChatGPT 😅, but that's okay, no worries! 🙃
 
 ## Overview
